@@ -1,5 +1,5 @@
  #include <DHT.h>
-#include <DHT_U.h>                ///esta es una prueba de GIT pruebo de nuevo !!!!!
+#include <DHT_U.h>                ///esta es una prueba de GIT pruebo de nuevo !!!!!!!
 #include <Servo.h>
 
 #include <PID_v1.h>
@@ -15,7 +15,10 @@
 #include <FS.h>
 #define ONE_HOUR 3600000UL
 #include <time.h>
-//#include <PersWiFiManager.h>
+#include <WiFiManager.h>
+#include <DNSServer.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266SSDP.h>
 
 #define TEMP_SENSOR_PIN D2
 #define TEMP_EXT_SENSOR_PIN D2
@@ -28,6 +31,9 @@ DallasTemperature tempSensors(&oneWire); // Create an instance of the temperatur
 //    DHT dht(TEMP_SENSOR_PIN, DHT11,11);
 
 ESP8266WebServer server (80);       // create a web server on port 80
+DNSServer dnsServer;
+WiFiManager wifiManager;
+
 
 File fsUploadFile;                                    // a File variable to temporarily store the received file
 
@@ -35,6 +41,7 @@ ESP8266WiFiMulti wifiMulti;    // Create an instance of the ESP8266WiFiMulti cla
 
 const char *OTAName = "ESP8266";         // A name and a password for the OTA service
 //const char *OTAPassword = "esp8266";
+#define DEVICE_NAME "ESP8266 DEVICE"
 
 const char* mdnsName = "esp8266";        // Domain name for the mDNS responder
 
@@ -95,11 +102,22 @@ void setup() {
   }
   //Wifi.mode(WIFI_STA);
   
-  startWiFi();                 // Start a Wi-Fi access point, and try to connect to some given access points. Then wait for either an AP or STA connection
+wifiManager.resetSettings();
+
+    startSPIFFS();               // Start the SPIFFS and list all contents
+    
+  if(!wifiManager.autoConnect("AutoConnectAP")) {   // manager crea un AP para conectarse la primera vez
+    Serial.println("failed to connect and hit timeout");
+    delay(3000);
+    //reset and try again, or maybe put it to deep sleep
+    ESP.reset();
+    delay(5000);
+  } 
+
+  //startWiFi();                 // Start a Wi-Fi access point, and try to connect to some given access points. Then wait for either an AP or STA connection
 
   startOTA();                  // Start the OTA service
 
-  startSPIFFS();               // Start the SPIFFS and list all contents
 
   startMDNS();                 // Start the mDNS responder
 
@@ -394,6 +412,20 @@ void startServer() { // Start a HTTP server with a file read handler and an uplo
   server.on("/",HTTP_GET , handleInfo );
   server.onNotFound(handleNotFound);          // if someone requests any other file or page, go to function 'handleNotFound'
   // and check if the file exists
+
+//Added
+ //SSDP makes device visible on windows network
+  server.on("/description.xml", HTTP_GET, []() {
+    SSDP.schema(server.client());
+  });
+  SSDP.setSchemaURL("description.xml");
+  SSDP.setHTTPPort(80);
+  SSDP.setName(DEVICE_NAME);
+  SSDP.setURL("/");
+  SSDP.begin();
+  SSDP.setDeviceType("upnp:rootdevice");
+
+//
 
   server.begin();                             // start the HTTP server
   Serial.println("HTTP server started.");
