@@ -100,9 +100,9 @@ void setup() {
     Serial.flush();
      ESP.reset();
   }
-  //Wifi.mode(WIFI_STA);
+
   
-wifiManager.resetSettings();
+//wifiManager.resetSettings(); // Esto es para probar de conectar de nuevo al AP, se olvida de los SSID
 
     startSPIFFS();               // Start the SPIFFS and list all contents
     
@@ -114,7 +114,7 @@ wifiManager.resetSettings();
     delay(5000);
   } 
 
-  //startWiFi();                 // Start a Wi-Fi access point, and try to connect to some given access points. Then wait for either an AP or STA connection
+  //startWiFi();                 // Start a Wi-Fi access point, and try to connect to some given access points. Then wait for either an AP or STA connection ya no lo uso, ahora es AP
 
   startOTA();                  // Start the OTA service
 
@@ -198,7 +198,7 @@ void loop() {
     UDP.print(WiFi.localIP());
     UDP.write(char(13));
     UDP.endPacket();
-    udpLog("Sent via UDP port 9998-- "+String(temperature));
+    udpLog("Sent via UDP port 9998-- "+WiFi.localIP().toString());
     if (!ventilationOn){
     fanSpeed =  map  ( temperature , Setpoint + 1 ,  Setpoint + 3 , 0 ,  10 );  // mapea la diferencia de 1 grados sobre el setting hasta 3 grados sobre el setting en un numero entre 0 y 10;
     fanSpeed = constrain ( fanSpeed , 0 , 10 ) ; 
@@ -327,24 +327,24 @@ void saveData(){
 /*__________________________________________________________SETUP_FUNCTIONS__________________________________________________________*/
 //##########################################################################################################################
 
-
-void startWiFi() { // Try to connect to some given access points. Then wait for a connection
-  wifiMulti.addAP("Primus-E74B", "3c90660be74b");   // add Wi-Fi networks you want to connect to
-  //wifiMulti.addAP("ssid_from_AP_2", "your_password_for_AP_2");
-  //wifiMulti.addAP("ssid_from_AP_3", "your_password_for_AP_3");
-
-  Serial.println("Connecting");
-  while (wifiMulti.run() != WL_CONNECTED) {  // Wait for the Wi-Fi to connect
-    delay(250);
-    Serial.print('.');
-  }
-  Serial.println("\r\n");
-  Serial.print("Connected to ");
-  Serial.println(WiFi.SSID());             // Tell us what network we're connected to
-  Serial.print("IP address:\t");
-  Serial.print(WiFi.localIP());            // Send the IP address of the ESP8266 to the computer
-  Serial.println("\r\n");
-}
+// Esta subrutina no la utilizo desde que uso el autoconnect WifiManager que crea un AP.
+//void startWiFi() { // Try to connect to some given access points. Then wait for a connection
+//  wifiMulti.addAP("Primus-E74B", "3c90660be74b");   // add Wi-Fi networks you want to connect to
+//  //wifiMulti.addAP("ssid_from_AP_2", "your_password_for_AP_2");
+//  //wifiMulti.addAP("ssid_from_AP_3", "your_password_for_AP_3");
+//
+//  Serial.println("Connecting");
+//  while (wifiMulti.run() != WL_CONNECTED) {  // Wait for the Wi-Fi to connect
+//    delay(250);
+//    Serial.print('.');
+//  }
+//  Serial.println("\r\n");
+//  Serial.print("Connected to ");
+//  Serial.println(WiFi.SSID());             // Tell us what network we're connected to
+//  Serial.print("IP address:\t");
+//  Serial.print(WiFi.localIP());            // Send the IP address of the ESP8266 to the computer
+//  Serial.println("\r\n");
+//}
 
 void startUDP() {
   Serial.println("Starting UDP");
