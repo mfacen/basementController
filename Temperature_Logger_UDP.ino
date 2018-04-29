@@ -202,7 +202,7 @@ void loop() {
     if (!ventilationOn){
     fanSpeed =  map  ( temperature , Setpoint + 1 ,  Setpoint + 3 , 0 ,  10 );  // mapea la diferencia de 1 grados sobre el setting hasta 3 grados sobre el setting en un numero entre 0 y 10;
     fanSpeed = constrain ( fanSpeed , 0 , 10 ) ; 
-    if (fanSpeed<2) fanSpeed = 2; // en uno el venti no anda casi nada
+    if (fanSpeed==1) fanSpeed = 2; // en uno el venti no anda casi nada
     }
     
     if ( lastFanSpeed != fanSpeed ) {           // Si la velocidad del ventilador cambia entonces guardar datos en archivo.
